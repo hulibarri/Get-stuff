@@ -32,8 +32,30 @@ function doGet() {
   return out({ ok: true, message: 'Card ideas inbox is running.' });
 }
 
+// Works whether the script lives inside a Sheet or on its own at script.google.com.
+// On its own, it creates a "Card Ideas" spreadsheet in your Google Drive the first time.
+function getSpreadsheet() {
+  const bound = SpreadsheetApp.getActiveSpreadsheet();
+  if (bound) return bound;
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('SHEET_ID');
+  if (id) return SpreadsheetApp.openById(id);
+  const ss = SpreadsheetApp.create('Card Ideas');
+  props.setProperty('SHEET_ID', ss.getId());
+  return ss;
+}
+
+// Run this once from the editor (select "setup", tap Run). It makes the sheet and logs its link.
+function setup() {
+  const ss = getSpreadsheet();
+  getSheet();
+  const first = ss.getSheets()[0];
+  if (first.getName() !== SHEET_NAME && first.getLastRow() === 0) ss.deleteSheet(first);
+  Logger.log('Your Card Ideas sheet: ' + ss.getUrl());
+}
+
 function getSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
