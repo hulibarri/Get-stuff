@@ -20,10 +20,30 @@ function doPost(e) {
       false
     ]);
     sheet.getRange(sheet.getLastRow(), HEADERS.length).insertCheckboxes();
+    notify(idea, p.spicy === 'yes', sheet.getParent().getUrl());
     return out({ ok: true });
   } finally {
     lock.releaseLock();
   }
+}
+
+// Emails you each new idea. Gmail on your phone turns this into a notification.
+function notify(idea, spicy, sheetUrl) {
+  try {
+    const short = idea.length > 60 ? idea.slice(0, 57) + '...' : idea;
+    MailApp.sendEmail({
+      to: Session.getEffectiveUser().getEmail(),
+      subject: (spicy ? '🌶️ ' : '') + 'New card idea: ' + short,
+      body: idea + '\n\n' + (spicy ? 'Marked spicy (adults only).\n\n' : '') + 'All ideas: ' + sheetUrl
+    });
+  } catch (err) {
+    console.error('Email failed: ' + err);
+  }
+}
+
+// Run once from the editor to allow email and send yourself a test.
+function testEmail() {
+  notify('This is a test. New ideas will show up like this.', false, getSpreadsheet().getUrl());
 }
 
 function doGet() {
