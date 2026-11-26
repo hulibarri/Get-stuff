@@ -1,6 +1,6 @@
 // Card Ideas inbox: collects themes, stories and inside jokes for Cards Against Our Ulibarri Family.
 const SHEET_NAME = 'Ideas';
-const HEADERS = ['Time', 'From', 'Idea / theme', 'Who or what it\'s about', 'Spicy (adults only)', 'Used in cards'];
+const HEADERS = ['Time', 'Idea / theme', 'Spicy (adults only)', 'Used in cards'];
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -15,9 +15,7 @@ function doPost(e) {
     const sheet = getSheet();
     sheet.appendRow([
       new Date(),
-      clean(p.name, 40) || 'Anonymous',
       idea,
-      clean(p.about, 100),
       p.spicy === 'yes' ? 'Yes' : 'No',
       false
     ]);
@@ -49,9 +47,12 @@ function getSpreadsheet() {
 function setup() {
   const ss = getSpreadsheet();
   const sheet = getSheet();
+  // Drop the old "From" and "About" columns if this sheet was made by an earlier version.
+  const head = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  if (head[1] === 'From') { sheet.deleteColumn(4); sheet.deleteColumn(2); }
   sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
-  sheet.setColumnWidth(3, 420);
-  sheet.getRange('C:C').setWrap(true);
+  sheet.setColumnWidth(2, 460);
+  sheet.getRange('B:B').setWrap(true);
   ss.getSheets().forEach(s => {
     if (s.getName() !== SHEET_NAME && s.getLastRow() === 0) ss.deleteSheet(s);
   });

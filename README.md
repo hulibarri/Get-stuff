@@ -16,7 +16,7 @@ If the editor looks cramped, tap **aA → Request Desktop Website** in Safari.
 ## Using it
 
 - Text the site link to everyone.
-- New ideas show up on the **Ideas** tab of the Sheet with who sent them, who it is about, and whether it is spicy (adults only).
+- New ideas show up on the **Ideas** tab of the Sheet with the idea and whether it is spicy (adults only).
 - Check **Used in cards** once an idea has been turned into cards.
 
 If you change `Code.gs` later, use **Deploy → Manage deployments → Edit → New version** so the URL stays the same.
