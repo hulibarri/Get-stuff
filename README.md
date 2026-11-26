@@ -1,6 +1,6 @@
 # Card Ideas for Cards Against Our Ulibarri Family
 
-A one-page site where family and friends send card ideas. Each idea lands in a Google Sheet, where you check off the good ones.
+A one-page site where family and friends send card ideas. People send themes, stories and inside jokes (not finished cards). Each idea lands in a Google Sheet, and the actual cards get written from them later.
 
 ## One-time setup (about 5 minutes, works on a phone)
 
@@ -16,7 +16,7 @@ If the editor looks cramped, tap **aA → Request Desktop Website** in Safari.
 ## Using it
 
 - Text the site link to everyone.
-- New ideas show up on the **Ideas** tab of the Sheet with who sent them, black or white, and whether they're spicy (adults only).
-- Check the **Approved** box on the ones you like, then copy those into the game.
+- New ideas show up on the **Ideas** tab of the Sheet with who sent them, who it is about, and whether it is spicy (adults only).
+- Check **Used in cards** once an idea has been turned into cards.
 
 If you change `Code.gs` later, use **Deploy → Manage deployments → Edit → New version** so the URL stays the same.

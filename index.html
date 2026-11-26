@@ -8,31 +8,25 @@
 <style>
   :root { --bg:#111; --fg:#f5f5f5; --muted:#9a9a9a; --accent:#ffd23f; --line:#2c2c2c; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif;
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 -apple-system, "Helvetica Neue", Arial, sans-serif;
          padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
   main { max-width:480px; margin:0 auto; padding:24px 18px 40px; }
-  h1 { font-size:26px; line-height:1.15; margin:8px 0 6px; font-weight:800; letter-spacing:-.02em; }
-  .sub { color:var(--muted); margin:0 0 22px; }
-  label.lbl { display:block; font-weight:700; font-size:14px; margin:18px 0 8px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .deck { display:flex; gap:8px; margin-bottom:14px; }
+  .deck span { width:34px; height:46px; border-radius:5px; display:block; }
+  .deck .b { background:#000; border:1px solid #444; transform:rotate(-8deg); }
+  .deck .w { background:#fff; transform:rotate(6deg); }
+  h1 { font-size:26px; line-height:1.15; margin:0 0 8px; font-weight:800; letter-spacing:-.02em; }
+  .sub { color:#cfcfcf; margin:0 0 6px; }
+  .examples { color:var(--muted); font-size:14px; margin:0 0 18px; }
+  label.lbl { display:block; font-weight:700; font-size:13px; margin:20px 0 8px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  label.lbl small { text-transform:none; letter-spacing:0; font-weight:500; }
   input[type=text], textarea { width:100%; border:1px solid var(--line); background:#1b1b1b; color:var(--fg); border-radius:12px;
          padding:14px; font:inherit; font-size:17px; }
+  textarea { min-height:150px; resize:vertical; }
   input:focus, textarea:focus { outline:2px solid var(--accent); border-color:transparent; }
-  .types { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .types button { border:2px solid var(--line); border-radius:12px; padding:14px 10px; font:inherit; font-weight:800; cursor:pointer; }
-  .types .black { background:#000; color:#fff; }
-  .types .white { background:#fff; color:#000; }
-  .types button[aria-pressed=true] { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent); }
-  .types small { display:block; font-weight:500; opacity:.7; margin-top:2px; }
-  .card { margin-top:18px; border-radius:16px; padding:20px; min-height:200px; display:flex; flex-direction:column; transition:background .2s, color .2s; }
-  .card.black { background:#000; color:#fff; border:1px solid #333; }
-  .card.white { background:#fff; color:#000; }
-  .card textarea { flex:1; min-height:130px; background:transparent; border:0; color:inherit; padding:0; font-size:21px; font-weight:700; resize:none; }
-  .card textarea:focus { outline:none; }
-  .card textarea::placeholder { color:inherit; opacity:.4; }
-  .card .foot { display:flex; justify-content:space-between; font-size:12px; font-weight:700; opacity:.6; margin-top:8px; }
-  .blankbtn { margin-top:10px; background:none; border:1px dashed var(--line); color:var(--fg); border-radius:10px; padding:8px 12px; font:inherit; font-size:14px; cursor:pointer; }
-  .toggle { display:flex; align-items:center; gap:12px; margin-top:18px; padding:14px; border:1px solid var(--line); border-radius:12px; cursor:pointer; }
-  .toggle input { width:22px; height:22px; accent-color:var(--accent); }
+  .chars { text-align:right; font-size:12px; color:#666; margin-top:4px; }
+  .toggle { display:flex; align-items:center; gap:12px; margin-top:20px; padding:14px; border:1px solid var(--line); border-radius:12px; cursor:pointer; }
+  .toggle input { width:22px; height:22px; accent-color:var(--accent); flex:none; }
   .toggle span small { display:block; color:var(--muted); font-size:13px; }
   .send { width:100%; margin-top:22px; padding:17px; border:0; border-radius:14px; background:var(--accent); color:#111; font:inherit; font-size:18px; font-weight:800; cursor:pointer; }
   .send:disabled { opacity:.5; }
@@ -48,38 +42,35 @@
 <main>
   <div id="warn" class="warn" hidden>Setup not finished: paste the Apps Script URL into <b>config.js</b> (see README).</div>
 
+  <div class="deck" aria-hidden="true"><span class="b"></span><span class="w"></span></div>
   <h1>Cards Against Our Ulibarri Family</h1>
-  <p class="sub">Got a card idea? Send it in. The best ones make it into the deck.</p>
+  <p class="sub">Help make the deck! Send us ideas, themes and inside jokes, and we'll turn them into cards.</p>
+  <p class="examples">Think: family stories, things people always say, embarrassing moments, running jokes, trips, holidays gone wrong.</p>
 
   <form id="form" autocomplete="off">
     <label class="lbl" for="name">Your name</label>
     <input type="text" id="name" maxlength="40" placeholder="Who's this from?">
 
-    <label class="lbl">Card type</label>
-    <div class="types">
-      <button type="button" class="black" data-type="black" aria-pressed="true">Black card<small>The prompt / question</small></button>
-      <button type="button" class="white" data-type="white" aria-pressed="false">White card<small>The answer</small></button>
-    </div>
+    <label class="lbl" for="idea">The idea</label>
+    <textarea id="idea" maxlength="1000" required placeholder="e.g. The time Dad got the minivan stuck at the beach and blamed the GPS"></textarea>
+    <div class="chars" id="chars">0/1000</div>
 
-    <div id="card" class="card black">
-      <textarea id="text" maxlength="300" required placeholder="What ruined Thanksgiving this year? ____."></textarea>
-      <div class="foot"><span>Cards Against Our Ulibarri Family</span><span id="chars">0/300</span></div>
-    </div>
-    <button type="button" id="blank" class="blankbtn">+ Add a blank ____</button>
+    <label class="lbl" for="about">Who or what is it about? <small>(optional)</small></label>
+    <input type="text" id="about" maxlength="100" placeholder="A person, a place, an event…">
 
     <label class="toggle">
       <input type="checkbox" id="spicy">
-      <span>Spicy 🌶️ <small>Adults only, keep it out of games with the kids</small></span>
+      <span>Spicy 🌶️ <small>Adults only. Keeps it out of cards the kids will see.</small></span>
     </label>
 
     <input type="text" name="website" id="website" class="hp" tabindex="-1" aria-hidden="true">
 
-    <button type="submit" class="send" id="send">Send card</button>
+    <button type="submit" class="send" id="send">Send idea</button>
     <div id="msg" class="msg" role="status"></div>
     <div id="count" class="count"></div>
   </form>
 
-  <footer>Version 1.1</footer>
+  <footer>Version 1.2</footer>
 </main>
 
 <script src="config.js"></script>
@@ -94,61 +85,39 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
 
-  let type = 'black';
-  let sent = Number(store.get('cardsSent') || 0);
-  const placeholders = {
-    black: "What ruined Thanksgiving this year? ____.",
-    white: "Taylor's emergency backup pants."
-  };
-
-  $('name').value = store.get('cardName') || '';
+  let sent = Number(store.get('ideasSent') || 0);
+  $('name').value = store.get('ideaName') || '';
   showCount();
 
-  document.querySelectorAll('.types button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      type = btn.dataset.type;
-      document.querySelectorAll('.types button').forEach(b => b.setAttribute('aria-pressed', b === btn));
-      $('card').className = 'card ' + type;
-      $('text').placeholder = placeholders[type];
-      $('blank').hidden = type !== 'black';
-    });
-  });
-
-  $('text').addEventListener('input', () => { $('chars').textContent = $('text').value.length + '/300'; });
-
-  $('blank').addEventListener('click', () => {
-    const t = $('text'), pos = t.selectionStart ?? t.value.length;
-    t.value = t.value.slice(0, pos) + '____' + t.value.slice(pos);
-    t.focus(); t.selectionStart = t.selectionEnd = pos + 4;
-    t.dispatchEvent(new Event('input'));
-  });
+  $('idea').addEventListener('input', () => { $('chars').textContent = $('idea').value.length + '/1000'; });
 
   $('form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const text = $('text').value.trim();
+    const idea = $('idea').value.trim();
     const name = $('name').value.trim();
-    if (!text) return say('Write a card first!', 'err');
+    if (!idea) return say('Write an idea first!', 'err');
     if (!url) return say('Site isn’t hooked up yet (missing config.js URL).', 'err');
 
-    store.set('cardName', name);
+    store.set('ideaName', name);
     $('send').disabled = true; $('send').textContent = 'Sending…';
     const body = new URLSearchParams({
-      name, type, text, spicy: $('spicy').checked ? 'yes' : 'no', website: $('website').value
+      name, idea, about: $('about').value.trim(),
+      spicy: $('spicy').checked ? 'yes' : 'no', website: $('website').value
     });
     try {
       await fetch(url, { method: 'POST', mode: 'no-cors', body });
-      sent++; store.set('cardsSent', sent); showCount();
-      $('text').value = ''; $('spicy').checked = false; $('chars').textContent = '0/300';
-      say('Card sent! Got another one?', 'ok');
+      sent++; store.set('ideasSent', sent); showCount();
+      $('idea').value = ''; $('about').value = ''; $('spicy').checked = false; $('chars').textContent = '0/1000';
+      say('Got it! Thanks. Have another one?', 'ok');
     } catch (err) {
       say('Couldn’t send. Check your connection and try again.', 'err');
     } finally {
-      $('send').disabled = false; $('send').textContent = 'Send card';
+      $('send').disabled = false; $('send').textContent = 'Send idea';
     }
   });
 
   function say(t, cls) { $('msg').textContent = t; $('msg').className = 'msg ' + cls; }
-  function showCount() { $('count').textContent = sent ? `You've sent ${sent} card${sent === 1 ? '' : 's'} 🎉` : ''; }
+  function showCount() { $('count').textContent = sent ? `You've sent ${sent} idea${sent === 1 ? '' : 's'} 🎉` : ''; }
 })();
 </script>
 </body>

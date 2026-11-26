@@ -1,6 +1,6 @@
-// Card Ideas inbox — paste this into Extensions > Apps Script of your Google Sheet.
+// Card Ideas inbox: collects themes, stories and inside jokes for Cards Against Our Ulibarri Family.
 const SHEET_NAME = 'Ideas';
-const HEADERS = ['Time', 'From', 'Type', 'Card', 'Spicy (adults only)', 'Approved'];
+const HEADERS = ['Time', 'From', 'Idea / theme', 'Who or what it\'s about', 'Spicy (adults only)', 'Used in cards'];
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -9,19 +9,19 @@ function doPost(e) {
     const p = (e && e.parameter) || {};
     if (p.website) return out({ ok: true }); // spam bot filled the hidden field
 
-    const text = clean(p.text, 300);
-    if (!text) return out({ ok: false, error: 'empty' });
+    const idea = clean(p.idea, 1000);
+    if (!idea) return out({ ok: false, error: 'empty' });
 
     const sheet = getSheet();
     sheet.appendRow([
       new Date(),
       clean(p.name, 40) || 'Anonymous',
-      p.type === 'black' ? 'Black (prompt)' : 'White (answer)',
-      text,
+      idea,
+      clean(p.about, 100),
       p.spicy === 'yes' ? 'Yes' : 'No',
       false
     ]);
-    sheet.getRange(sheet.getLastRow(), 6).insertCheckboxes();
+    sheet.getRange(sheet.getLastRow(), HEADERS.length).insertCheckboxes();
     return out({ ok: true });
   } finally {
     lock.releaseLock();
@@ -45,12 +45,16 @@ function getSpreadsheet() {
   return ss;
 }
 
-// Run this once from the editor (select "setup", tap Run). It makes the sheet and logs its link.
+// Run once from the editor (pick "setup", click Run). Makes the sheet and logs its link.
 function setup() {
   const ss = getSpreadsheet();
-  getSheet();
-  const first = ss.getSheets()[0];
-  if (first.getName() !== SHEET_NAME && first.getLastRow() === 0) ss.deleteSheet(first);
+  const sheet = getSheet();
+  sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
+  sheet.setColumnWidth(3, 420);
+  sheet.getRange('C:C').setWrap(true);
+  ss.getSheets().forEach(s => {
+    if (s.getName() !== SHEET_NAME && s.getLastRow() === 0) ss.deleteSheet(s);
+  });
   Logger.log('Your Card Ideas sheet: ' + ss.getUrl());
 }
 
