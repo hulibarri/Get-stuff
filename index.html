@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Card Ideas · Cards Against Our Ulibarri Family</title>
+<meta name="theme-color" content="#111111">
+<style>
+  :root { --bg:#111; --fg:#f5f5f5; --muted:#9a9a9a; --accent:#ffd23f; --line:#2c2c2c; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif;
+         padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+  main { max-width:480px; margin:0 auto; padding:24px 18px 40px; }
+  h1 { font-size:26px; line-height:1.15; margin:8px 0 6px; font-weight:800; letter-spacing:-.02em; }
+  .sub { color:var(--muted); margin:0 0 22px; }
+  label.lbl { display:block; font-weight:700; font-size:14px; margin:18px 0 8px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  input[type=text], textarea { width:100%; border:1px solid var(--line); background:#1b1b1b; color:var(--fg); border-radius:12px;
+         padding:14px; font:inherit; font-size:17px; }
+  input:focus, textarea:focus { outline:2px solid var(--accent); border-color:transparent; }
+  .types { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .types button { border:2px solid var(--line); border-radius:12px; padding:14px 10px; font:inherit; font-weight:800; cursor:pointer; }
+  .types .black { background:#000; color:#fff; }
+  .types .white { background:#fff; color:#000; }
+  .types button[aria-pressed=true] { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent); }
+  .types small { display:block; font-weight:500; opacity:.7; margin-top:2px; }
+  .card { margin-top:18px; border-radius:16px; padding:20px; min-height:200px; display:flex; flex-direction:column; transition:background .2s, color .2s; }
+  .card.black { background:#000; color:#fff; border:1px solid #333; }
+  .card.white { background:#fff; color:#000; }
+  .card textarea { flex:1; min-height:130px; background:transparent; border:0; color:inherit; padding:0; font-size:21px; font-weight:700; resize:none; }
+  .card textarea:focus { outline:none; }
+  .card textarea::placeholder { color:inherit; opacity:.4; }
+  .card .foot { display:flex; justify-content:space-between; font-size:12px; font-weight:700; opacity:.6; margin-top:8px; }
+  .blankbtn { margin-top:10px; background:none; border:1px dashed var(--line); color:var(--fg); border-radius:10px; padding:8px 12px; font:inherit; font-size:14px; cursor:pointer; }
+  .toggle { display:flex; align-items:center; gap:12px; margin-top:18px; padding:14px; border:1px solid var(--line); border-radius:12px; cursor:pointer; }
+  .toggle input { width:22px; height:22px; accent-color:var(--accent); }
+  .toggle span small { display:block; color:var(--muted); font-size:13px; }
+  .send { width:100%; margin-top:22px; padding:17px; border:0; border-radius:14px; background:var(--accent); color:#111; font:inherit; font-size:18px; font-weight:800; cursor:pointer; }
+  .send:disabled { opacity:.5; }
+  .msg { margin-top:14px; text-align:center; min-height:22px; font-weight:600; }
+  .msg.ok { color:#6ee77a; } .msg.err { color:#ff7a7a; }
+  .count { text-align:center; color:var(--muted); font-size:14px; margin-top:4px; }
+  .warn { background:#3a2a00; border:1px solid #7a5a00; color:#ffd88a; padding:12px 14px; border-radius:12px; font-size:14px; margin-bottom:16px; }
+  .hp { position:absolute; left:-9999px; }
+  footer { text-align:center; color:#555; font-size:12px; margin-top:30px; }
+</style>
+</head>
+<body>
+<main>
+  <div id="warn" class="warn" hidden>Setup not finished: paste the Apps Script URL into <b>config.js</b> (see README).</div>
+
+  <h1>Cards Against Our Ulibarri Family</h1>
+  <p class="sub">Got a card idea? Send it in. The best ones make it into the deck.</p>
+
+  <form id="form" autocomplete="off">
+    <label class="lbl" for="name">Your name</label>
+    <input type="text" id="name" maxlength="40" placeholder="Who's this from?">
+
+    <label class="lbl">Card type</label>
+    <div class="types">
+      <button type="button" class="black" data-type="black" aria-pressed="true">Black card<small>The prompt / question</small></button>
+      <button type="button" class="white" data-type="white" aria-pressed="false">White card<small>The answer</small></button>
+    </div>
+
+    <div id="card" class="card black">
+      <textarea id="text" maxlength="300" required placeholder="What ruined Thanksgiving this year? ____."></textarea>
+      <div class="foot"><span>Cards Against Our Ulibarri Family</span><span id="chars">0/300</span></div>
+    </div>
+    <button type="button" id="blank" class="blankbtn">+ Add a blank ____</button>
+
+    <label class="toggle">
+      <input type="checkbox" id="spicy">
+      <span>Spicy 🌶️ <small>Adults only, keep it out of games with the kids</small></span>
+    </label>
+
+    <input type="text" name="website" id="website" class="hp" tabindex="-1" aria-hidden="true">
+
+    <button type="submit" class="send" id="send">Send card</button>
+    <div id="msg" class="msg" role="status"></div>
+    <div id="count" class="count"></div>
+  </form>
+
+  <footer>Version 1.0</footer>
+</main>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const url = (window.SCRIPT_URL || '').trim();
+  if (!url) $('warn').hidden = false;
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  let type = 'black';
+  let sent = Number(store.get('cardsSent') || 0);
+  const placeholders = {
+    black: "What ruined Thanksgiving this year? ____.",
+    white: "Taylor's emergency backup pants."
+  };
+
+  $('name').value = store.get('cardName') || '';
+  showCount();
+
+  document.querySelectorAll('.types button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      type = btn.dataset.type;
+      document.querySelectorAll('.types button').forEach(b => b.setAttribute('aria-pressed', b === btn));
+      $('card').className = 'card ' + type;
+      $('text').placeholder = placeholders[type];
+      $('blank').hidden = type !== 'black';
+    });
+  });
+
+  $('text').addEventListener('input', () => { $('chars').textContent = $('text').value.length + '/300'; });
+
+  $('blank').addEventListener('click', () => {
+    const t = $('text'), pos = t.selectionStart ?? t.value.length;
+    t.value = t.value.slice(0, pos) + '____' + t.value.slice(pos);
+    t.focus(); t.selectionStart = t.selectionEnd = pos + 4;
+    t.dispatchEvent(new Event('input'));
+  });
+
+  $('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = $('text').value.trim();
+    const name = $('name').value.trim();
+    if (!text) return say('Write a card first!', 'err');
+    if (!url) return say('Site isn’t hooked up yet (missing config.js URL).', 'err');
+
+    store.set('cardName', name);
+    $('send').disabled = true; $('send').textContent = 'Sending…';
+    const body = new URLSearchParams({
+      name, type, text, spicy: $('spicy').checked ? 'yes' : 'no', website: $('website').value
+    });
+    try {
+      await fetch(url, { method: 'POST', mode: 'no-cors', body });
+      sent++; store.set('cardsSent', sent); showCount();
+      $('text').value = ''; $('spicy').checked = false; $('chars').textContent = '0/300';
+      say('Card sent! Got another one?', 'ok');
+    } catch (err) {
+      say('Couldn’t send. Check your connection and try again.', 'err');
+    } finally {
+      $('send').disabled = false; $('send').textContent = 'Send card';
+    }
+  });
+
+  function say(t, cls) { $('msg').textContent = t; $('msg').className = 'msg ' + cls; }
+  function showCount() { $('count').textContent = sent ? `You've sent ${sent} card${sent === 1 ? '' : 's'} 🎉` : ''; }
+})();
+</script>
+</body>
+</html>
